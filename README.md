@@ -1,6 +1,6 @@
 # Low-Field MRI Pulse Sequences for MaRCoS
 
-> Production-ready pulse sequences for low-field MRI using Red Pitaya SDR and the MaRCoS framework
+> Pulse sequences for low-field MRI using Red Pitaya SDR and the MaRCoS framework
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
@@ -10,7 +10,7 @@
 
 ## Overview
 
-This repository contains **production-ready pulse sequences** for low-field MRI experiments, built to work with the [MaRCoS](https://github.com/marcos-mri/marcos_client) (Magnetic Resonance Control System) framework. These sequences have been developed from first principles and tested on real hardware.
+This repository contains **pulse sequences** for low-field MRI experiments, built to work with the [MaRCoS](https://github.com/marcos-mri/marcos_client) (Magnetic Resonance Control System) framework. These sequences have been developed from first principles and tested on real hardware.
 
 **Key Features:**
 - ✅ **Spin Echo with comprehensive frequency sweep** (ENBW-aware, thermal predictions)
@@ -39,72 +39,9 @@ MaRCoS provides:
 
 ---
 
-## Installation & Setup
-
-### Step 1: Install MaRCoS Framework
-
-First, you must install the MaRCoS client library:
-
-```bash
-# Clone MaRCoS repository
-git clone https://github.com/marcos-mri/marcos_client.git
-cd marcos_client
-
-# Install dependencies (follow MaRCoS documentation)
-pip install -e .
-```
-
-📖 **Full MaRCoS installation guide**: https://github.com/marcos-mri/marcos_client
-
-### Step 2: Clone This Repository into MaRCoS
-
-**IMPORTANT**: Clone this repo **inside** your `marcos_client` directory:
-
-```bash
-# From inside marcos_client/
-git clone https://github.com/YOUR-USERNAME/low-field-mri-sequences.git
-cd low-field-mri-sequences
-```
-
-Your directory structure should look like:
-```
-marcos_client/
-├── experiment.py          # MaRCoS core (provides Experiment class)
-├── local_config.py        # Your hardware configuration
-├── low-field-mri-sequences/    # This repository
-│   ├── SpinEcho_Sweep.py
-│   ├── SpinEcho_Average.py
-│   ├── FID_Acquisition.py
-│   └── ...
-└── ... (other MaRCoS files)
-```
-
-### Step 3: Configure Your Hardware
-
-Edit `marcos_client/local_config.py` to match your setup:
-
-```python
-# Example local_config.py
-ip_address = "192.168.0.140"  # Your Red Pitaya IP
-port = 11111
-fpga_clk_freq_MHz = 122.88
-grad_board = "gpa-fhdo"
-gpa_fhdo_current_per_volt = 2.5
-```
-
-If this file doesn't exist, create it using the template from MaRCoS documentation.
-
-### Step 4: Install Additional Dependencies
-
-```bash
-pip install numpy matplotlib scipy
-```
-
----
-
 ## Quick Start
 
-All scripts are run from the `low-field-mri-sequences/` directory **within** your `marcos_client` installation.
+All scripts are run from `marcos_client`.
 
 ### 1. Test Your Hardware
 
@@ -315,84 +252,6 @@ Validates RX chain:
 
 ---
 
-## Typical Workflow
-
-```mermaid
-graph TD
-    A[Install MaRCoS] --> B[Clone this repo into marcos_client/]
-    B --> C[Configure local_config.py]
-    C --> D[Run tx_bringup_test.py]
-    D --> E[Run rx_bringup_test.py]
-    E --> F[Run SpinEcho_Sweep.py]
-    F --> G[Find resonance peak]
-    G --> H[Update parameters in SpinEcho_Average.py]
-    H --> I[Acquire averaged data]
-    I --> J[Optional: Run SpinEcho_Noise.py]
-    J --> K[Analysis & Processing]
-```
-
-### Step-by-Step
-
-1. **Hardware Setup**
-   - Connect Red Pitaya to network
-   - Connect RF TX/RX chains
-   - Configure `local_config.py`
-
-2. **Bring-Up Tests**
-   - TX test → verify RF output
-   - RX test → verify signal reception
-
-3. **Find Resonance**
-   - Run `SpinEcho_Sweep.py` over expected range
-   - Check `sweep_results/sweep_plot.png`
-   - Note peak frequency from console output
-
-4. **Optimize Parameters**
-   - Tune RF amplitudes (avoid saturation)
-   - Adjust pulse widths for 90°/180° tips
-   - Set τ delay based on T2
-
-5. **Acquire Data**
-   - Run `SpinEcho_Average.py` with N averages
-   - Check SNR improvement plot
-   - Extract data from `.npz` for analysis
-
-6. **Characterize System**
-   - Run `SpinEcho_Noise.py` for noise floor
-   - Compare measured vs thermal predictions
-
----
-
-## Parameter Tuning Guide
-
-### RF Amplitude
-- **Start low**: 0.01 - 0.05
-- **Increase gradually**: Monitor signal vs amplitude
-- **Too high**: Saturation, ringing, distortion
-- **Too low**: Poor SNR
-
-### Pulse Width
-- **90° pulse**: Typically 10-500 μs depending on B₁
-- **180° pulse**: Typically 2× the 90° duration (for same B₁)
-- **Calibration**: Vary pulse width, observe signal vs width curve
-
-### τ Delay (Spin Echo)
-- **Typical range**: 200-2000 μs
-- **Longer τ**: More T₂ decay, lower SNR, better refocusing
-- **Shorter τ**: Less decay, higher SNR, less inhomogeneity refocusing
-
-### Acquisition Time
-- **FID**: Capture 3-5× T₂* 
-- **Spin Echo**: Capture full echo plus baseline
-- **Noise**: Long captures (>10 ms) for stable RMS
-
-### Sampling Rate
-- **Faster**: Better time resolution, more noise bandwidth
-- **Slower**: Less data, narrower noise bandwidth
-- **Sweet spot**: 2-4 MS/s for typical low-field applications
-
----
-
 ## Understanding the Outputs
 
 ### SpinEcho_Sweep.py Output Structure
@@ -465,138 +324,6 @@ volts_per_unit = 0.00845  # Your calibrated value
 
 ---
 
-## Troubleshooting
-
-### No signal detected
-1. ✅ Check `local_config.py` IP address
-2. ✅ Verify Red Pitaya is powered and connected
-3. ✅ Run `tx_bringup_test.py` → check oscilloscope
-4. ✅ Run `rx_bringup_test.py` with signal generator
-5. ✅ Check RF chain connections (TX → coil → RX)
-6. ✅ Verify sample is in coil and at correct field strength
-
-### Poor SNR
-1. ✅ Increase number of averages (`N_REPS`)
-2. ✅ Enable/tune low-pass filter (`LPF_CUT_HZ`)
-3. ✅ Check for 50/60 Hz mains interference
-4. ✅ Run `SpinEcho_Noise.py` → compare to thermal baseline
-5. ✅ Verify grounding and shielding
-6. ✅ Check LNA gain and noise figure settings
-
-### Import errors
-```
-ModuleNotFoundError: No module named 'experiment'
-```
-**Solution**: You must run scripts from within `marcos_client/` directory structure. The `experiment` module is part of MaRCoS.
-
-### Timing issues
-1. ✅ Check `blank_us` is long enough for TX ring-down
-2. ✅ Verify acquisition window captures full signal
-3. ✅ Ensure `rx_t` sampling period matches expectations
-
-### Data mismatch
-- **Requested acq_us ≠ actual**: Normal - FPGA quantizes timing
-- **Fewer samples than expected**: Check FIFO overflow messages
-- **Empty RX buffer**: Verify RX gate timing, check `flush_old_rx=True`
-
----
-
-## Advanced Topics
-
-### Custom Pulse Sequences
-
-To create your own sequence:
-
-```python
-from experiment import Experiment
-
-expt = Experiment(
-    lo_freq=2.1,        # MHz
-    rx_t=0.25,          # μs sample period
-    init_gpa=False,     # Set True if using gradients
-    auto_leds=True,
-    flush_old_rx=True
-)
-
-# Define timing
-tx_times = np.array([0, 100, 500, 600])  # μs
-tx_amps = np.array([0.5, 0, 0.5, 0])     # DAC units
-
-rx_times = np.array([650, 1650])         # μs
-rx_gate = np.array([1, 0])               # Enable/disable
-
-seq = {
-    "tx0": (tx_times, tx_amps + 0j),
-    "rx0_en": (rx_times, rx_gate)
-}
-
-expt.add_flodict(seq)
-rxd, msgs = expt.run()
-
-data = rxd["rx0"]  # Complex array
-```
-
-### Batch Processing
-
-Process multiple `.npz` files:
-```python
-import numpy as np
-import glob
-
-for fname in glob.glob('averages_out/*.npz'):
-    data = np.load(fname)
-    avg = data['avg_complex']
-    # Your analysis here
-```
-
-### Exporting Data
-
-```python
-# Save to CSV
-np.savetxt('echo_data.csv', 
-           np.column_stack([t, avg.real, avg.imag]),
-           delimiter=',',
-           header='time_us,real_V,imag_V')
-
-# Save to MATLAB
-from scipy.io import savemat
-savemat('echo_data.mat', {'t': t, 'signal': avg})
-```
-
----
-
-## Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-sequence`)
-3. Test thoroughly on hardware
-4. Update documentation
-5. Submit a pull request
-
-**Areas for contribution:**
-- Additional pulse sequences (CPMG, inversion recovery, etc.)
-- Automated calibration routines
-- Advanced post-processing
-- Documentation improvements
-
----
-
-## Citation
-
-If you use this code in your research, please cite:
-
-```
-[Your Name], [Institution], 2025
-Low-Field MRI Pulse Sequences for MaRCoS Framework
-GitHub: https://github.com/YOUR-USERNAME/low-field-mri-sequences
-```
-
-**And cite the MaRCoS framework:**
-```
-MaRCoS: Magnetic Resonance Control System
-https://github.com/marcos-mri/marcos_client
-```
 
 ---
 
